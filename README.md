@@ -185,5 +185,3 @@ FilmoraLands/
 
 ---
 
-![Powered by FilmoraLands]
-```
