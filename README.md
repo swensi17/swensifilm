@@ -180,8 +180,9 @@ FilmoraLands/
 
 Если у вас есть вопросы или предложения, вы можете связаться со мной по следующим каналам:
 
-- **Email:** [your_email@example.com](mailto:your_email@example.com)
+- **Email:** [tutatutaev9@gmail.com](mailto:your_email@example.com)
 - **GitHub:** [swensi17](https://github.com/swensi17)
+- **Telegram:** [swensi17](https://t.me/swensi17)
 
 ---
 
