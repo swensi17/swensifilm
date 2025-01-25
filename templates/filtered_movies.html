@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KinoLands - {{ media_type|title }}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark fixed-top">
+        <div class="container">
+            <a class="navbar-brand" href="/">
+                <span class="brand-text">Kino<span class="brand-accent">Lands</span></span>
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item dropdown">
+                        <a class="nav-link nav-btn" href="#" data-bs-toggle="dropdown">
+                            <i class="fas fa-film"></i>
+                            <span>Жанры</span>
+                        </a>
+                        <ul class="dropdown-menu">
+                            {% for genre in genres %}
+                            <li><a class="dropdown-item" href="{{ url_for('genre', genre_id=genre.id) }}">{{ genre.name }}</a></li>
+                            {% endfor %}
+                        </ul>
+                    </li>
+                    
+                    <!-- Кнопки типов контента -->
+                    <li class="nav-item">
+                        <a href="{{ url_for('filter_movies', media_type='movie') }}" 
+                           class="nav-link nav-btn media-type-btn {% if media_type == 'movie' %}active{% endif %}" 
+                           data-type="movie">
+                            <i class="fas fa-film"></i>
+                            <span>Фильмы</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="{{ url_for('filter_movies', media_type='tv') }}" 
+                           class="nav-link nav-btn media-type-btn {% if media_type == 'tv' %}active{% endif %}" 
+                           data-type="tv">
+                            <i class="fas fa-tv"></i>
+                            <span>Сериалы</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="{{ url_for('filter_movies', media_type='animation') }}" 
+                           class="nav-link nav-btn media-type-btn {% if media_type == 'animation' %}active{% endif %}" 
+                           data-type="animation">
+                            <i class="fas fa-baby"></i>
+                            <span>Мультфильмы</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="{{ url_for('filter_movies', media_type='anime') }}" 
+                           class="nav-link nav-btn media-type-btn {% if media_type == 'anime' %}active{% endif %}" 
+                           data-type="anime">
+                            <i class="fas fa-dragon"></i>
+                            <span>Аниме</span>
+                        </a>
+                    </li>
+
+                    <!-- Остальные кнопки -->
+                    <li class="nav-item">
+                        <a href="{{ url_for('collections') }}" class="nav-link nav-btn">
+                            <i class="fas fa-layer-group"></i>
+                            <span>Подборки</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="{{ url_for('random_movie') }}" class="nav-link nav-btn">
+                            <i class="fas fa-random"></i>
+                            <span>Случайный</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link nav-btn" data-bs-toggle="modal" data-bs-target="#filterModal">
+                            <i class="fas fa-filter"></i>
+                            <span>Фильтры</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-5">
+        <div class="section-scroll" id="filteredSection">
+            <div class="row movie-grid" id="filteredGrid">
+                {% for movie in movies %}
+                <div class="col-6 col-md-3 mb-4">
+                    <div class="movie-card" onclick="window.location.href='{{ url_for('movie_details', movie_id=movie.id) }}'">
+                        <div class="movie-poster-container">
+                            <div class="rating">
+                                <div class="rating-badge tmdb">
+                                    <i class="fas fa-star"></i>
+                                    {{ "%.1f"|format(movie.vote_average) }}
+                                </div>
+                            </div>
+                            {% if movie.poster_path %}
+                            <img src="https://image.tmdb.org/t/p/w500{{ movie.poster_path }}" 
+                                 alt="{{ movie.title }}" 
+                                 class="movie-poster"
+                                 loading="lazy">
+                            {% else %}
+                            <div class="no-poster">Нет постера</div>
+                            {% endif %}
+                        </div>
+                        <div class="movie-info">
+                            <h3>{{ movie.title }}</h3>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        <div id="loading" class="text-center d-none">
+            <div class="spinner-border text-danger" role="status">
+                <span class="visually-hidden">Загрузка...</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Обновляем модальное окно фильтра -->
+    <div class="modal fade filter-modal" id="filterModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="fas fa-filter"></i>
+                        Фильтры и сортировка
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="filterForm" action="{{ url_for('filter_movies') }}" method="get">
+                        <div class="filter-section">
+                            <h5><i class="fas fa-sort-amount-down"></i> Сортировка</h5>
+                            <div class="filter-chips">
+                                <label class="filter-chip">
+                                    <input type="radio" name="sort_by" value="popularity.desc" class="d-none" checked>
+                                    <i class="fas fa-fire-alt"></i> Популярные
+                                </label>
+                                <label class="filter-chip">
+                                    <input type="radio" name="sort_by" value="vote_average.desc" class="d-none">
+                                    <i class="fas fa-star"></i> По рейтингу
+                                </label>
+                                <label class="filter-chip">
+                                    <input type="radio" name="sort_by" value="release_date.desc" class="d-none">
+                                    <i class="fas fa-calendar-alt"></i> Новинки
+                                </label>
+                                <label class="filter-chip">
+                                    <input type="radio" name="sort_by" value="revenue.desc" class="d-none">
+                                    <i class="fas fa-dollar-sign"></i> Кассовые
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="filter-section">
+                            <h5><i class="fas fa-calendar-day"></i> Период выхода</h5>
+                            <div class="filter-chips period-chips">
+                                <label class="filter-chip">
+                                    <input type="radio" name="period" value="week" class="d-none">
+                                    За неделю
+                                </label>
+                                <label class="filter-chip">
+                                    <input type="radio" name="period" value="month" class="d-none">
+                                    За месяц
+                                </label>
+                                <label class="filter-chip">
+                                    <input type="radio" name="period" value="year" class="d-none">
+                                    За год
+                                </label>
+                                <label class="filter-chip">
+                                    <input type="radio" name="period" value="custom" class="d-none">
+                                    Свой период
+                                </label>
+                            </div>
+                            
+                            <div class="custom-period mt-3" style="display: none;">
+                                <div class="row g-2">
+                                    <div class="col-6">
+                                        <div class="form-floating">
+                                            <input type="number" class="form-control" name="year_from" placeholder="От" min="1900" max="2024">
+                                            <label>Год от</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="form-floating">
+                                            <input type="number" class="form-control" name="year_to" placeholder="До" min="1900" max="2024">
+                                            <label>Год до</label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="filter-section">
+                            <h5><i class="fas fa-star-half-alt"></i> Рейтинг</h5>
+                            <div class="filter-chips rating-chips">
+                                <label class="filter-chip">
+                                    <input type="radio" name="rating" value="7" class="d-none">
+                                    7+ <i class="fas fa-star text-warning"></i>
+                                </label>
+                                <label class="filter-chip">
+                                    <input type="radio" name="rating" value="8" class="d-none">
+                                    8+ <i class="fas fa-star text-warning"></i>
+                                </label>
+                                <label class="filter-chip">
+                                    <input type="radio" name="rating" value="9" class="d-none">
+                                    9+ <i class="fas fa-star text-warning"></i>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="filter-section">
+                            <h5><i class="fas fa-globe"></i> Регион</h5>
+                            <div class="filter-chips">
+                                <label class="filter-chip">
+                                    <input type="radio" name="region" value="RU" class="d-none" checked>
+                                    Россия
+                                </label>
+                                <label class="filter-chip">
+                                    <input type="radio" name="region" value="US" class="d-none">
+                                    США
+                                </label>
+                                <label class="filter-chip">
+                                    <input type="radio" name="region" value="EU" class="d-none">
+                                    Европа
+                                </label>
+                                <label class="filter-chip">
+                                    <input type="radio" name="region" value="AS" class="d-none">
+                                    Азия
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="filter-section">
+                            <h5><i class="fas fa-film"></i> Тип контента</h5>
+                            <div class="filter-chips">
+                                <label class="filter-chip">
+                                    <input type="radio" name="media_type" value="movie" class="d-none" checked>
+                                    <i class="fas fa-film"></i> Фильмы
+                                </label>
+                                <label class="filter-chip">
+                                    <input type="radio" name="media_type" value="tv" class="d-none">
+                                    <i class="fas fa-tv"></i> Сериалы
+                                </label>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="reset" form="filterForm" class="btn btn-secondary">Сбросить</button>
+                    <button type="submit" form="filterForm" class="btn btn-apply-filter">
+                        <i class="fas fa-check"></i> Применить
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const mediaType = '{{ media_type }}';
+        let currentPage = 1;
+        let isLoading = false;
+        let hasMoreContent = true; // Флаг для проверки наличия контента
+
+        // Функция для инициализации навигации в секции
+        function initializeNavigation(section) {
+            const grid = section.querySelector('.row, .top-10-grid');
+            const prevBtn = section.querySelector('.section-nav.prev');
+            const nextBtn = section.querySelector('.section-nav.next');
+
+            if (!grid || !prevBtn || !nextBtn) return;
+
+            // Определяем размер прокрутки в зависимости от типа сетки
+            const isTop10 = grid.classList.contains('top-10-grid');
+            const scrollAmount = isTop10 ? 304 : 220; // 304px для топ-10, 220px для остальных
+
+            // Обработчик для кнопки "Предыдущий"
+            prevBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                grid.scrollBy({
+                    left: -scrollAmount,
+                    behavior: 'smooth'
+                });
+            });
+
+            // Обработчик для кнопки "Следующий"
+            nextBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                grid.scrollBy({
+                    left: scrollAmount,
+                    behavior: 'smooth'
+                });
+            });
+
+            // Обновление состояния кнопок
+            function updateButtonStates() {
+                const maxScroll = grid.scrollWidth - grid.clientWidth;
+                prevBtn.style.opacity = grid.scrollLeft > 0 ? '1' : '0.5';
+                nextBtn.style.opacity = grid.scrollLeft < maxScroll ? '1' : '0.5';
+            }
+
+            // Слушатели событий
+            grid.addEventListener('scroll', updateButtonStates);
+            window.addEventListener('resize', updateButtonStates);
+
+            // Инициализация состояния кнопок
+            updateButtonStates();
+        }
+
+        // Инициализация навигации для всех секций
+        const sections = document.querySelectorAll('.section-scroll, .top-10-section');
+        sections.forEach(initializeNavigation);
+
+        // Функция загрузки для мобильной версии (горизонтальная прокрутка)
+        if (window.innerWidth < 768) {
+            const filteredSection = document.getElementById('filteredSection');
+            const filteredGrid = document.getElementById('filteredGrid');
+
+            if (filteredSection) {
+                filteredSection.addEventListener('scroll', function() {
+                    const scrollPosition = this.scrollLeft + this.offsetWidth;
+                    const maxScroll = this.scrollWidth;
+                    
+                    if (maxScroll - scrollPosition <= 20 && !isLoading && hasMoreContent) {
+                        loadMoreMovies();
+                    }
+                });
+            }
+        }
+
+        // Функция загрузки для десктопной версии (вертикальная прокрутка)
+        window.addEventListener('scroll', function() {
+            if (window.innerWidth >= 768) {
+                if ((window.innerHeight + window.scrollY) >= document.documentElement.scrollHeight - 500 
+                    && !isLoading && hasMoreContent) {
+                    loadMoreMovies();
+                }
+            }
+        });
+
+        function loadMoreMovies() {
+            if (isLoading || !hasMoreContent) return;
+            
+            isLoading = true;
+            document.getElementById('loading').classList.remove('d-none');
+            
+            currentPage++;
+            
+            fetch(`/api/load_more?media_type=${mediaType}&page=${currentPage}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.length > 0) {
+                        data.forEach(movie => {
+                            const movieCard = `
+                                <div class="col-6 col-md-3 mb-4">
+                                    <div class="movie-card" onclick="window.location.href='/movie/${movie.id}'">
+                                        <div class="movie-poster-container">
+                                            <div class="rating">
+                                                <div class="rating-badge tmdb">
+                                                    <i class="fas fa-star"></i>
+                                                    ${movie.vote_average.toFixed(1)}
+                                                </div>
+                                            </div>
+                                            ${movie.poster_path ? 
+                                                `<img src="https://image.tmdb.org/t/p/w500${movie.poster_path}" 
+                                                     alt="${movie.title}" 
+                                                     class="movie-poster"
+                                                     loading="lazy">` :
+                                                '<div class="no-poster">Нет постера</div>'
+                                            }
+                                        </div>
+                                        <div class="movie-info">
+                                            <h3>${movie.title}</h3>
+                                        </div>
+                                    </div>
+                                </div>
+                            `;
+                            filteredGrid.insertAdjacentHTML('beforeend', movieCard);
+                        });
+                    } else {
+                        hasMoreContent = false; // Если данных больше нет
+                    }
+                    isLoading = false;
+                    document.getElementById('loading').classList.add('d-none');
+                })
+                .catch(error => {
+                    console.error('Error loading more movies:', error);
+                    isLoading = false;
+                    document.getElementById('loading').classList.add('d-none');
+                });
+        }
+    });
+
+    document.querySelectorAll('.filter-chip').forEach(chip => {
+        const input = chip.querySelector('input');
+        if (input) {
+            // Проверяем, был ли этот фильтр выбран ранее
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get(input.name) === input.value) {
+                chip.classList.add('active');
+                input.checked = true;
+                
+                // Показываем/скрываем поля для кастомного периода
+                if (input.name === 'period' && input.value === 'custom') {
+                    document.querySelector('.custom-period').style.display = 'block';
+                }
+            }
+            
+            chip.addEventListener('click', function() {
+                if (input.type === 'radio') {
+                    document.querySelectorAll(`[name="${input.name}"]`)
+                        .forEach(radio => radio.parentElement.classList.remove('active'));
+                    this.classList.add('active');
+                    input.checked = true;
+                    
+                    // Показываем/скрываем поля для кастомного периода
+                    if (input.name === 'period') {
+                        const customPeriod = document.querySelector('.custom-period');
+                        customPeriod.style.display = input.value === 'custom' ? 'block' : 'none';
+                    }
+                }
+            });
+        }
+    });
+
+    // Добавляем обработчик для кнопки сброса
+    document.querySelector('button[type="reset"]').addEventListener('click', function() {
+        document.querySelectorAll('.filter-chip').forEach(chip => {
+            chip.classList.remove('active');
+        });
+        document.querySelector('.custom-period').style.display = 'none';
+        // Активируем дефолтные значения
+        document.querySelector('input[value="popularity.desc"]').checked = true;
+        document.querySelector('input[value="popularity.desc"]').parentElement.classList.add('active');
+        document.querySelector('input[value="RU"]').checked = true;
+        document.querySelector('input[value="RU"]').parentElement.classList.add('active');
+        document.querySelector('input[value="movie"]').checked = true;
+        document.querySelector('input[value="movie"]').parentElement.classList.add('active');
+    });
+    </script>
+</body>
+</html> 

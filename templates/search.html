@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Поиск - KinoLands</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark fixed-top">
+        <div class="container">
+            <a class="navbar-brand" href="/">Kino<span style="color: #ff0000;">Lands</span></a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/genres">Жанры</a>
+                    </li>
+                </ul>
+                <form class="d-flex ms-auto" action="{{ url_for('search') }}" method="get">
+                    <input class="form-control me-2" type="search" name="query" placeholder="Поиск фильмов..." value="{{ query }}">
+                    <button class="btn btn-outline-light" type="submit">Поиск</button>
+                </form>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container main-content">
+        <h2>Другие части франшизы</h2>
+        <p>Другие фильмы из этой же серии</p>
+        <div class="row movie-grid">
+            {% if results %}
+                {% for movie in results %}
+                <div class="col-6 col-md-3 mb-4">
+                    <div class="movie-card" data-movie-id="{{ movie.id }}">
+                        {% if movie.vote_average > 0 %}
+                        <div class="rating">{{ "%.1f"|format(movie.vote_average) }}</div>
+                        {% endif %}
+                        {% if movie.poster_path %}
+                        <img src="https://image.tmdb.org/t/p/w500{{ movie.poster_path }}" 
+                             alt="{{ movie.title }}" 
+                             class="movie-poster">
+                        {% else %}
+                        <div class="no-poster">
+                            <span>Нет постера</span>
+                        </div>
+                        {% endif %}
+                        <div class="movie-info">
+                            <h3>{{ movie.title }}</h3>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="col-12 text-center">
+                    <p>По вашему запросу ничего не найдено</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html> 
