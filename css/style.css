@@ -121,6 +121,7 @@
     margin: 0;
     line-height: 1.2;
     background: linear-gradient(45deg, #ffffff 30%, #e6e6e6);
+    background-clip: text;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.4);
@@ -351,6 +352,7 @@
 
 .movie-meta-title {
     background: linear-gradient(135deg, #e50914, #b30710);
+    background-clip: text;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     font-size: 1.3rem;
@@ -366,6 +368,7 @@
 
 .movie-meta-title i {
     background: linear-gradient(135deg, #e50914, #ff1a1a);
+    background-clip: text;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     font-size: 1.2rem;
@@ -383,6 +386,7 @@
 
 .genres-title {
     background: linear-gradient(135deg, #e50914, #b30710);
+    background-clip: text;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     font-size: 1.3rem;
@@ -398,6 +402,7 @@
 
 .genres-title i {
     background: linear-gradient(135deg, #e50914, #ff1a1a);
+    background-clip: text;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     font-size: 1.2rem;
@@ -1021,6 +1026,7 @@
     max-height: 44px;
     overflow: hidden;
     display: -webkit-box;
+    line-clamp: 2;
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
     text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
@@ -1871,6 +1877,7 @@
     font-weight: 800;
     margin-bottom: 25px;
     background: linear-gradient(45deg, #fff 30%, #e6e6e6);
+    background-clip: text;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
@@ -2284,6 +2291,7 @@
 
 .description-title {
     background: linear-gradient(135deg, #e50914, #b30710);
+    background-clip: text;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     font-size: 1.3rem;
@@ -2299,6 +2307,7 @@
 
 .description-title i {
     background: linear-gradient(135deg, #e50914, #ff1a1a);
+    background-clip: text;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     font-size: 1.2rem;
@@ -2628,6 +2637,7 @@
 
 .brand-text {
     background: linear-gradient(45deg, #ffffff 30%, #e6e6e6);
+    background-clip: text;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
@@ -2637,6 +2647,7 @@
 
 .brand-accent {
     background: linear-gradient(45deg, #e50914, #ff3b30);
+    background-clip: text;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     font-weight: 900;

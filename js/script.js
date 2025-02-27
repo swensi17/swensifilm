@@ -6,7 +6,7 @@ document.addEventListener('DOMContentLoaded', function() {
         card.addEventListener('click', function() {
             const movieId = this.dataset.movieId;
             if (movieId) {
-                window.location.href = `/movie/${movieId}`;
+                window.location.href = `movie.html?id=${movieId}`;
             }
         });
     });
@@ -61,12 +61,12 @@ async function openActorModal(actorId) {
     const modal = new bootstrap.Modal(document.getElementById('actorModal'));
     
     try {
-        const response = await fetch(`/api/actor/${actorId}`);
+        const response = await fetch(`data/actors/${actorId}.json`);
         const actor = await response.json();
         
         // Заполняем модальное окно данными
         document.getElementById('actorModalPhoto').src = actor.profile_path ? 
-            `https://image.tmdb.org/t/p/w500${actor.profile_path}` : '';
+            `https://image.tmdb.org/t/p/w500${actor.profile_path}` : 'images/no-photo.jpg';
         document.getElementById('actorModalName').textContent = actor.name;
         
         // Обновляем биографию с новой структурой
@@ -86,13 +86,13 @@ async function openActorModal(actorId) {
         // Заполняем фильмографию
         const filmography = document.getElementById('actorFilmography');
         filmography.innerHTML = actor.credits.cast.map(movie => `
-            <div class="film-card" onclick="window.location.href='/movie/${movie.id}'">
-                <img src="https://image.tmdb.org/t/p/w342${movie.poster_path}" 
+            <div class="film-card" onclick="window.location.href='movie.html?id=${movie.id}'">
+                <img src="${movie.poster_path ? `https://image.tmdb.org/t/p/w342${movie.poster_path}` : 'images/no-poster.jpg'}" 
                      alt="${movie.title}" 
                      class="film-poster">
                 <div class="film-info">
                     <div class="film-title">${movie.title}</div>
-                    <div class="film-year">${movie.release_date.split('-')[0]}</div>
+                    <div class="film-year">${movie.release_date ? movie.release_date.split('-')[0] : 'Неизвестно'}</div>
                 </div>
             </div>
         `).join('');
