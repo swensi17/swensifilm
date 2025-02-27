@@ -118,7 +118,7 @@
             </button>
             <div class="top-10-grid">
                 {% for movie in top_movies %}
-                <div class="top-movie-card" onclick="window.location.href='{{ url_for('movie_details', movie_id=movie.id) }}'">
+                <div class="top-movie-card" data-movie-id="{{ movie.id }}">
                     <div class="top-number">{{ loop.index }}</div>
                     <div class="movie-poster-container">
                         <div class="rating">
@@ -156,7 +156,7 @@
             <div class="row movie-grid" id="trendingGrid">
                 {% for movie in trending %}
                 <div class="col-6 col-md-3 mb-4">
-                    <div class="movie-card" onclick="window.location.href='{{ url_for('movie_details', movie_id=movie.id) }}'">
+                    <div class="movie-card" data-movie-id="{{ movie.id }}">
                         <div class="movie-poster-container">
                             <div class="rating">
                                 <div class="rating-badge tmdb">
@@ -198,7 +198,7 @@
             <div class="row movie-grid" id="popularGrid">
                 {% for movie in movies %}
                 <div class="col-6 col-md-3 mb-4">
-                    <div class="movie-card" onclick="window.location.href='{{ url_for('movie_details', movie_id=movie.id) }}'">
+                    <div class="movie-card" data-movie-id="{{ movie.id }}">
                         <div class="movie-poster-container">
                             <div class="rating">
                                 <div class="rating-badge tmdb">
@@ -240,7 +240,7 @@
             <div class="row movie-grid" id="topRatedGrid">
                 {% for movie in top_rated %}
                 <div class="col-6 col-md-3 mb-4">
-                    <div class="movie-card" onclick="window.location.href='{{ url_for('movie_details', movie_id=movie.id) }}'">
+                    <div class="movie-card" data-movie-id="{{ movie.id }}">
                         <div class="movie-poster-container">
                             <div class="rating">
                                 <div class="rating-badge tmdb">
@@ -282,7 +282,7 @@
             <div class="row movie-grid" id="newReleasesGrid">
                 {% for movie in new_releases %}
                 <div class="col-6 col-md-3 mb-4">
-                    <div class="movie-card" onclick="window.location.href='{{ url_for('movie_details', movie_id=movie.id) }}'">
+                    <div class="movie-card" data-movie-id="{{ movie.id }}">
                         <div class="movie-poster-container">
                             <div class="rating">
                                 <div class="rating-badge tmdb">
@@ -324,7 +324,7 @@
             <div class="row movie-grid" id="upcomingGrid">
                 {% for movie in upcoming %}
                 <div class="col-6 col-md-3 mb-4">
-                    <div class="movie-card" onclick="window.location.href='{{ url_for('movie_details', movie_id=movie.id) }}'">
+                    <div class="movie-card" data-movie-id="{{ movie.id }}">
                         <div class="movie-poster-container">
                             <div class="rating">
                                 <div class="rating-badge tmdb">
@@ -366,7 +366,7 @@
             <div class="row movie-grid" id="classicsGrid">
                 {% for movie in classics %}
                 <div class="col-6 col-md-3 mb-4">
-                    <div class="movie-card" onclick="window.location.href='{{ url_for('movie_details', movie_id=movie.id) }}'">
+                    <div class="movie-card" data-movie-id="{{ movie.id }}">
                         <div class="movie-poster-container">
                             <div class="rating">
                                 <div class="rating-badge tmdb">
@@ -408,7 +408,7 @@
             <div class="row movie-grid" id="bestMoviesGrid">
                 {% for movie in best_movies %}
                 <div class="col-6 col-md-3 mb-4">
-                    <div class="movie-card" onclick="window.location.href='{{ url_for('movie_details', movie_id=movie.id) }}'">
+                    <div class="movie-card" data-movie-id="{{ movie.id }}">
                         <div class="movie-poster-container">
                             <div class="rating">
                                 <div class="rating-badge tmdb">
@@ -450,7 +450,7 @@
             <div class="row movie-grid" id="bestTVGrid">
                 {% for movie in best_tv %}
                 <div class="col-6 col-md-3 mb-4">
-                    <div class="movie-card" onclick="window.location.href='{{ url_for('movie_details', movie_id=movie.id) }}'">
+                    <div class="movie-card" data-movie-id="{{ movie.id }}">
                         <div class="movie-poster-container">
                             <div class="rating">
                                 <div class="rating-badge tmdb">
@@ -492,7 +492,7 @@
             <div class="row movie-grid" id="bestAnimationGrid">
                 {% for movie in best_animation %}
                 <div class="col-6 col-md-3 mb-4">
-                    <div class="movie-card" onclick="window.location.href='{{ url_for('movie_details', movie_id=movie.id) }}'">
+                    <div class="movie-card" data-movie-id="{{ movie.id }}">
                         <div class="movie-poster-container">
                             <div class="rating">
                                 <div class="rating-badge tmdb">
@@ -534,7 +534,7 @@
             <div class="row movie-grid" id="animeGrid">
                 {% for movie in anime %}
                 <div class="col-6 col-md-3 mb-4">
-                    <div class="movie-card" onclick="window.location.href='{{ url_for('movie_details', movie_id=movie.id) }}'">
+                    <div class="movie-card" data-movie-id="{{ movie.id }}">
                         <div class="movie-poster-container">
                             <div class="rating">
                                 <div class="rating-badge tmdb">
@@ -576,7 +576,7 @@
             <div class="row movie-grid" id="top2024Grid">
                 {% for movie in top_2024 %}
                 <div class="col-6 col-md-3 mb-4">
-                    <div class="movie-card" onclick="window.location.href='{{ url_for('movie_details', movie_id=movie.id) }}'">
+                    <div class="movie-card" data-movie-id="{{ movie.id }}">
                         <div class="movie-poster-container">
                             <div class="rating">
                                 <div class="rating-badge tmdb">
@@ -618,7 +618,7 @@
             <div class="row movie-grid" id="top2023Grid">
                 {% for movie in top_2023 %}
                 <div class="col-6 col-md-3 mb-4">
-                    <div class="movie-card" onclick="window.location.href='{{ url_for('movie_details', movie_id=movie.id) }}'">
+                    <div class="movie-card" data-movie-id="{{ movie.id }}">
                         <div class="movie-poster-container">
                             <div class="rating">
                                 <div class="rating-badge tmdb">
@@ -660,7 +660,7 @@
             <div class="row movie-grid" id="actionGrid">
                 {% for movie in action_movies %}
                 <div class="col-6 col-md-3 mb-4">
-                    <div class="movie-card" onclick="window.location.href='{{ url_for('movie_details', movie_id=movie.id) }}'">
+                    <div class="movie-card" data-movie-id="{{ movie.id }}">
                         <div class="movie-poster-container">
                             <div class="rating">
                                 <div class="rating-badge tmdb">
@@ -702,7 +702,7 @@
             <div class="row movie-grid" id="comedyGrid">
                 {% for movie in comedy_movies %}
                 <div class="col-6 col-md-3 mb-4">
-                    <div class="movie-card" onclick="window.location.href='{{ url_for('movie_details', movie_id=movie.id) }}'">
+                    <div class="movie-card" data-movie-id="{{ movie.id }}">
                         <div class="movie-poster-container">
                             <div class="rating">
                                 <div class="rating-badge tmdb">
@@ -744,7 +744,7 @@
             <div class="row movie-grid" id="horrorGrid">
                 {% for movie in horror_movies %}
                 <div class="col-6 col-md-3 mb-4">
-                    <div class="movie-card" onclick="window.location.href='{{ url_for('movie_details', movie_id=movie.id) }}'">
+                    <div class="movie-card" data-movie-id="{{ movie.id }}">
                         <div class="movie-poster-container">
                             <div class="rating">
                                 <div class="rating-badge tmdb">
@@ -786,7 +786,7 @@
             <div class="row movie-grid" id="scifiGrid">
                 {% for movie in scifi_movies %}
                 <div class="col-6 col-md-3 mb-4">
-                    <div class="movie-card" onclick="window.location.href='{{ url_for('movie_details', movie_id=movie.id) }}'">
+                    <div class="movie-card" data-movie-id="{{ movie.id }}">
                         <div class="movie-poster-container">
                             <div class="rating">
                                 <div class="rating-badge tmdb">
@@ -828,7 +828,7 @@
             <div class="row movie-grid" id="dramaGrid">
                 {% for movie in drama_movies %}
                 <div class="col-6 col-md-3 mb-4">
-                    <div class="movie-card" onclick="window.location.href='{{ url_for('movie_details', movie_id=movie.id) }}'">
+                    <div class="movie-card" data-movie-id="{{ movie.id }}">
                         <div class="movie-poster-container">
                             <div class="rating">
                                 <div class="rating-badge tmdb">
@@ -870,7 +870,7 @@
             <div class="row movie-grid" id="mysteryGrid">
                 {% for movie in mystery_movies %}
                 <div class="col-6 col-md-3 mb-4">
-                    <div class="movie-card" onclick="window.location.href='{{ url_for('movie_details', movie_id=movie.id) }}'">
+                    <div class="movie-card" data-movie-id="{{ movie.id }}">
                         <div class="movie-poster-container">
                             <div class="rating">
                                 <div class="rating-badge tmdb">
@@ -912,7 +912,7 @@
             <div class="row movie-grid" id="romanceGrid">
                 {% for movie in romance_movies %}
                 <div class="col-6 col-md-3 mb-4">
-                    <div class="movie-card" onclick="window.location.href='{{ url_for('movie_details', movie_id=movie.id) }}'">
+                    <div class="movie-card" data-movie-id="{{ movie.id }}">
                         <div class="movie-poster-container">
                             <div class="rating">
                                 <div class="rating-badge tmdb">
@@ -1051,6 +1051,13 @@
             // Инициализация состояния кнопок
             updateButtonStates();
         }
+
+        document.querySelectorAll('.movie-card').forEach(card => {
+            card.addEventListener('click', function() {
+                const movieId = this.dataset.movieId;
+                window.location.href = `/movie/${movieId}`;
+            });
+        });
     });
     </script>
 </body>

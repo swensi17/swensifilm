@@ -2,9 +2,11 @@ from datetime import datetime, timedelta
 from flask import Flask, render_template, request, jsonify, redirect, url_for
 import requests
 import random
-from datetime import datetime, timedelta
 
-app = Flask(__name__)
+app = Flask(__name__,
+    static_folder='static',
+    template_folder='templates'
+)
 
 API_KEY = "f07fe1ef73590e66585c2260c45f60b"
 BASE_URL = "https://api.themoviedb.org/3"
@@ -468,7 +470,7 @@ def index():
                          mystery_movies=mystery_movies,
                          romance_movies=romance_movies)
 
-@app.route('/movie/<movie_id>')
+@app.route('/movie/<int:movie_id>')
 def movie_details(movie_id):
     # Получаем информацию о фильме
     movie_response = requests.get(
@@ -482,7 +484,14 @@ def movie_details(movie_id):
     movie_details = movie_response.json()
 
     # Получаем трейлеры
-    trailer_key = get_trailer(movie_id)  # Используем функцию get_trailer
+    videos_response = requests.get(f"{BASE_URL}/movie/{movie_id}/videos", headers=HEADERS)
+    trailers = None
+    if videos_response.json().get('results'):
+        # Ищем официальный трейлер
+        for video in videos_response.json()['results']:
+            if video['type'] == 'Trailer' and video['site'] == 'YouTube':
+                trailers = video['key']
+                break
 
     # Получаем актерский состав
     credits_response = requests.get(
@@ -496,39 +505,113 @@ def movie_details(movie_id):
     similar_response = requests.get(
         f"{BASE_URL}/movie/{movie_id}/similar",
         headers=HEADERS,
-        params={'language': 'ru-RU'}
+        params={
+            'language': 'ru-RU',
+            'page': 1
+        }
     )
-    similar_movies = similar_response.json().get('results', [])
+    
+    if similar_response.ok:
+        similar_movies = similar_response.json().get('results', [])
+        
+        # Фильтруем фильмы с постерами и рейтингом выше 5
+        similar_movies = [movie for movie in similar_movies if movie.get('poster_path') and movie.get('vote_average', 0) > 5]
+        
+        # Добавляем дополнительные рекомендации если похожих фильмов мало
+        if len(similar_movies) < 8:
+            recommendations = requests.get(
+                f"{BASE_URL}/movie/{movie_id}/recommendations",
+                headers=HEADERS,
+                params={'language': 'ru-RU', 'page': 1}
+            ).json().get('results', [])
+            
+            # Фильтруем рекомендации
+            recommendations = [movie for movie in recommendations 
+                             if movie.get('poster_path') and 
+                             movie.get('vote_average', 0) > 5 and 
+                             movie['id'] not in [m['id'] for m in similar_movies]]
+            
+            similar_movies.extend(recommendations[:8 - len(similar_movies)])
 
-    # Проверяем, является ли фильм частью коллекции
-    for movie in similar_movies:
-        movie['is_collection'] = movie_details.get('belongs_to_collection') is not None
+        # Разделяем фильмы на новые и старые
+        current_year = datetime.now().year
+        new_movies = []
+        old_movies = []
+        
+        for movie in similar_movies:
+            release_date = movie.get('release_date', '')
+            if release_date:
+                year = int(release_date[:4])
+                if year >= current_year - 2:  # Фильмы за последние 2 года считаем новыми
+                    new_movies.append(movie)
+                else:
+                    old_movies.append(movie)
+        
+        # Сортируем каждую группу по рейтингу и дате
+        new_movies.sort(key=lambda x: (x.get('vote_average', 0), x.get('release_date', '')), reverse=True)
+        old_movies.sort(key=lambda x: (x.get('vote_average', 0), x.get('release_date', '')), reverse=True)
+        
+        # Объединяем списки, сначала новые, потом старые
+        similar_movies = new_movies + old_movies
+    else:
+        similar_movies = []
 
-    return render_template('movie.html', 
-                         movie=movie_details, 
-                         cast=cast, 
-                         similar_movies=similar_movies, 
-                         trailers=trailer_key)  # Передаем ключ трейлера
+    return render_template('movie.html',
+                         movie=movie_details,
+                         cast=cast[:8],
+                         similar_movies=similar_movies[:8],
+                         trailers=trailers,
+                         current_year=datetime.now().year)
 
 @app.route('/search')
 def search():
-    query = request.args.get('query', '')
-    if query:
-        response = requests.get(
-            f"{BASE_URL}/search/movie",
-            headers=HEADERS,
-            params={
-                'query': query, 
-                'language': 'ru-RU',
-                'region': 'RU',
-                'include_adult': 'false'
-            }
-        )
-        results = response.json()['results']
-    else:
-        results = []
+    query = request.args.get('query', '').strip()
+    if not query:
+        return render_template('search.html', movies=None)
     
-    return render_template('search.html', results=results, query=query)
+    # Поиск фильмов
+    search_response = requests.get(
+        f"{BASE_URL}/search/movie",
+        headers=HEADERS,
+        params={
+            'query': query,
+            'language': 'ru-RU',
+            'page': 1,
+            'include_adult': False
+        }
+    )
+    
+    if not search_response.ok:
+        return render_template('search.html', movies=[], error="Произошла ошибка при поиске")
+    
+    movies = search_response.json().get('results', [])
+    
+    # Фильтруем результаты и добавляем дополнительную информацию
+    filtered_movies = []
+    for movie in movies:
+        if movie.get('poster_path'):  # Проверяем наличие постера
+            # Получаем дополнительную информацию о фильме
+            movie_details = requests.get(
+                f"{BASE_URL}/movie/{movie['id']}",
+                headers=HEADERS,
+                params={'language': 'ru-RU'}
+            )
+            
+            if movie_details.ok:
+                details = movie_details.json()
+                movie['genres'] = details.get('genres', [])
+                movie['runtime'] = details.get('runtime')
+                filtered_movies.append(movie)
+                
+                if len(filtered_movies) >= 20:  # Ограничиваем количество результатов
+                    break
+    
+    return render_template(
+        'search.html',
+        movies=filtered_movies,
+        query=query,
+        error=None if filtered_movies else "По вашему запросу ничего не найдено"
+    )
 
 @app.route('/genre/<int:genre_id>')
 def genre(genre_id):
@@ -561,13 +644,18 @@ def api_search():
         response = requests.get(
             f"{BASE_URL}/search/movie",
             headers=HEADERS,
-            params={'query': query, 'language': 'ru-RU'}
+            params={
+                'query': query, 
+                'language': 'ru-RU',
+                'region': 'RU',
+                'include_adult': 'false'
+            }
         )
         results = response.json()['results']
     else:
         results = []
     
-    return jsonify(results)
+    return render_template('search.html', results=results, query=query)
 
 @app.route('/collection/<collection_id>')
 def collection(collection_id):
@@ -1211,6 +1299,123 @@ def watch_movie(movie_id):
     # Здесь вы можете добавить логику для просмотра фильма
     # Например, перенаправление на страницу с фильмом или на сторонний сервис
     return redirect(f"https://www.example.com/watch/{movie_id}")  # Замените на нужный URL
+
+@app.route('/api/actor/<actor_id>')
+def get_actor_info(actor_id):
+    # Получаем детальную информацию об актере
+    actor_details = requests.get(
+        f"{BASE_URL}/person/{actor_id}",
+        params={'api_key': API_KEY, 'language': 'ru'},
+        headers=HEADERS
+    ).json()
+
+    # Получаем фильмографию актера
+    actor_credits = requests.get(
+        f"{BASE_URL}/person/{actor_id}/movie_credits",
+        params={'api_key': API_KEY, 'language': 'ru'},
+        headers=HEADERS
+    ).json()
+
+    # Объединяем информацию
+    actor_details['credits'] = actor_credits
+
+    return jsonify(actor_details)
+
+@app.route('/actor/<int:actor_id>')
+def actor_details(actor_id):
+    # Получаем детальную информацию об актере
+    actor_response = requests.get(
+        f"{BASE_URL}/person/{actor_id}",
+        headers=HEADERS,
+        params={'language': 'ru-RU'}
+    )
+    actor = actor_response.json()
+
+    # Получаем фильмографию актера
+    credits_response = requests.get(
+        f"{BASE_URL}/person/{actor_id}/movie_credits",
+        headers=HEADERS,
+        params={'language': 'ru-RU'}
+    )
+    actor['credits'] = credits_response.json()
+
+    return render_template('actor.html', actor=actor)
+
+@app.route('/api/similar_movies/<int:movie_id>')
+def get_similar_movies(movie_id):
+    page = request.args.get('page', 1, type=int)
+    
+    # Сначала получаем информацию о фильме, чтобы проверить принадлежность к коллекции
+    movie_info = requests.get(
+        f"{BASE_URL}/movie/{movie_id}",
+        headers=HEADERS,
+        params={
+            'language': 'ru-RU',
+            'append_to_response': 'belongs_to_collection'
+        }
+    ).json()
+    
+    all_movies = []
+    
+    # Если фильм принадлежит коллекции, получаем все фильмы из этой коллекции
+    if movie_info.get('belongs_to_collection'):
+        collection_id = movie_info['belongs_to_collection']['id']
+        collection_response = requests.get(
+            f"{BASE_URL}/collection/{collection_id}",
+            headers=HEADERS,
+            params={'language': 'ru-RU'}
+        )
+        
+        if collection_response.ok:
+            collection = collection_response.json()
+            # Сортируем фильмы коллекции по дате выхода
+            collection_movies = sorted(
+                collection.get('parts', []),
+                key=lambda x: x.get('release_date', ''),
+                reverse=False  # По возрастанию, чтобы части шли по порядку
+            )
+            all_movies.extend([m for m in collection_movies if m.get('poster_path')])
+    
+    # Затем получаем похожие фильмы
+    similar_response = requests.get(
+        f"{BASE_URL}/movie/{movie_id}/similar",
+        headers=HEADERS,
+        params={
+            'language': 'ru-RU',
+            'page': page
+        }
+    )
+    
+    if similar_response.ok:
+        similar_movies = similar_response.json().get('results', [])
+        # Фильтруем похожие фильмы, исключая те, что уже есть в коллекции
+        similar_movies = [
+            movie for movie in similar_movies 
+            if movie.get('poster_path') and 
+            movie.get('vote_average', 0) > 5 and 
+            movie['id'] not in [m['id'] for m in all_movies]
+        ]
+        all_movies.extend(similar_movies)
+    
+    # Если фильмов всё ещё мало, добавляем рекомендации
+    if len(all_movies) < 20:
+        recommendations = requests.get(
+            f"{BASE_URL}/movie/{movie_id}/recommendations",
+            headers=HEADERS,
+            params={'language': 'ru-RU', 'page': page}
+        ).json().get('results', [])
+        
+        # Фильтруем рекомендации
+        recommendations = [
+            movie for movie in recommendations 
+            if movie.get('poster_path') and 
+            movie.get('vote_average', 0) > 5 and 
+            movie['id'] not in [m['id'] for m in all_movies]
+        ]
+        
+        all_movies.extend(recommendations)
+    
+    return jsonify(all_movies)
 
 if __name__ == '__main__':
     app.run(debug=True)
